@@ -18,3 +18,11 @@ module "s3" {
 module "dynamodb" {
   source = "./dynamodb"
 }
+
+module "api_gw" {
+  source = "./api-gateway"
+}
+
+module "lambda" {
+  source = "./lambda"
+}
