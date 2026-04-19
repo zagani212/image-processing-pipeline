@@ -14,3 +14,7 @@ module "s3" {
   region = var.region
   account_id = var.account_id
 }
+
+module "dynamodb" {
+  source = "./dynamodb"
+}
