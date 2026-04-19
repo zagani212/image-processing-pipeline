@@ -19,10 +19,12 @@ module "dynamodb" {
   source = "./dynamodb"
 }
 
-module "api_gw" {
-  source = "./api-gateway"
-}
-
 module "lambda" {
   source = "./lambda"
+}
+
+module "api_gw" {
+  source = "./api-gateway"
+
+  validate = module.lambda.validate
 }

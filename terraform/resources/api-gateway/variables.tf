@@ -1,0 +1,3 @@
+variable "validate" {
+  type = string
+}
