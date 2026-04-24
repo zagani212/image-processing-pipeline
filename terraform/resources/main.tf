@@ -28,3 +28,10 @@ module "api_gw" {
 
   validate = module.lambda.validate
 }
+
+module "permission" {
+  source = "./permissions"
+
+  validate_function = "validate"
+  api_gw = module.api_gw.api_gw_arn
+}
