@@ -21,6 +21,14 @@ variable "metadata_role_name" {
   type = string
 }
 
+variable "metadata_function_arn" {
+  type = string
+}
+
 variable "dynamo_table_arn" {
+  type = string  
+}
+
+variable "sqs_arn" {
   type = string  
 }

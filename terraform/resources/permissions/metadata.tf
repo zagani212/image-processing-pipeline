@@ -1,3 +1,13 @@
+resource "aws_lambda_event_source_mapping" "example" {
+  event_source_arn = var.sqs_arn
+  function_name    = var.metadata_function_arn
+  batch_size       = 10
+
+  scaling_config {
+    maximum_concurrency = 100
+  }
+}
+
 resource "aws_iam_policy" "metadata_function_policy" {
   name        = "metadata_lambda_policy"
   path        = "/"
