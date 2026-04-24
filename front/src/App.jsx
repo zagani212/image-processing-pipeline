@@ -43,7 +43,7 @@ export default function App() {
 
     const formData = new FormData()
     files.forEach(f => formData.append('images', f))
-
+    console.log(formData)
     try {
       const res = await fetch(`${BACKEND_URL}/images/upload`, {
         method: 'POST',
