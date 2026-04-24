@@ -19,8 +19,16 @@ module "dynamodb" {
   source = "./dynamodb"
 }
 
+module "sqs" {
+  source = "./sqs"
+}
+
 module "lambda" {
   source = "./lambda"
+
+  metadata_queue_url = module.sqs.metadata_queue_url
+  images_bucket = module.s3.bucket_name
+  dynamo_table = module.dynamodb.images_table
 }
 
 module "api_gw" {
@@ -33,5 +41,12 @@ module "permission" {
   source = "./permissions"
 
   validate_function = "validate"
+  metadata_function_arn = module.lambda.metadata
   api_gw = module.api_gw.api_gw_arn
+  sqs_arn = module.sqs.metadata_sqs_arn
+  bucket_arn = module.s3.bucket_arn
+  dynamo_table_arn = module.dynamodb.images_table_arn
+  metadata_sqs_arn = module.sqs.metadata_sqs_arn
+  validate_role_name = "validate_function_role"
+  metadata_role_name = "metadata_function_role"
 }
