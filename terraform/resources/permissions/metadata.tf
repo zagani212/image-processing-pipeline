@@ -1,5 +1,5 @@
 resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn = var.sqs_arn
+  event_source_arn = var.metadata_sqs_arn
   function_name    = var.metadata_function_arn
   batch_size       = 10
 
@@ -29,6 +29,13 @@ resource "aws_iam_policy" "metadata_function_policy" {
         ]
         Effect   = "Allow"
         Resource = var.dynamo_table_arn
+      },
+      {
+        Action = [
+          "sns:Publish",
+        ]
+        Effect   = "Allow"
+        Resource = var.sns_arn
       },
       {
         Action = [

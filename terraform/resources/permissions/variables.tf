@@ -29,6 +29,20 @@ variable "dynamo_table_arn" {
   type = string  
 }
 
-variable "sqs_arn" {
+variable "thumbnail_sqs_arn" {
+  type = string  
+}
+variable "medium_sqs_arn" {
+  type = string  
+}
+
+variable "thumbnail_sqs_url" {
+  type = string  
+}
+variable "medium_sqs_url" {
+  type = string  
+}
+
+variable "sns_arn" {
   type = string  
 }
