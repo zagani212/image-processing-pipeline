@@ -16,6 +16,8 @@ resource "aws_iam_role" "validate_function_role" {
   assume_role_policy = data.aws_iam_policy_document.validate_function_assume_role.json
 }
 
+
+
 # Package the Lambda function code
 data "archive_file" "validate_function_archive_file" {
   type        = "zip"
