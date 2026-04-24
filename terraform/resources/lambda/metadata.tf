@@ -40,6 +40,7 @@ resource "aws_lambda_function" "metadata_function" {
   environment {
     variables = {
       DYNAMO_TABLE = var.dynamo_table
+      SNS_TOPIC_ARN = var.sns_arn
     }
   }
 

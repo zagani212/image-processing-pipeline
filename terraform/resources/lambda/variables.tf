@@ -9,3 +9,7 @@ variable "images_bucket" {
 variable "dynamo_table" {
   type = string
 }
+
+variable "sns_arn" {
+  type = string
+}
