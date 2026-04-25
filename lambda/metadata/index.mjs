@@ -78,7 +78,10 @@ export const handler = async (event) => {
       await sns.send(
         new PublishCommand({
           TopicArn: SNS_TOPIC_ARN,
-          Message: JSON.stringify(item),
+          Message: JSON.stringify({
+            Bucket: bucket,
+            Key: key,
+          }),
           Subject: "ImageToBeResized",
         })
       );
