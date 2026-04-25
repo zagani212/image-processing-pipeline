@@ -1,27 +1,81 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 
+const WS_URL = import.meta.env.VITE_WS_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 export default function App() {
+  const [wsStatus, setWsStatus] = useState('disconnected')
+  const [connectionId, setConnectionId] = useState(null)
   const [files, setFiles] = useState([])
   const [previews, setPreviews] = useState([])
-  const [status, setStatus] = useState(null) // 'uploading' | 'success' | 'error'
+  const [uploadStatus, setUploadStatus] = useState(null) // null | 'uploading' | 'sent' | 'error'
   const [message, setMessage] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [generated, setGenerated] = useState({ thumbnail: null, medium: null })
   const inputRef = useRef(null)
+  const wsRef = useRef(null)
+
+  const connect = useCallback(() => {
+    if (!WS_URL) return
+    if (wsRef.current && wsRef.current.readyState < 2) wsRef.current.close()
+
+    setWsStatus('connecting')
+    setConnectionId(null)
+    const ws = new WebSocket(WS_URL)
+    wsRef.current = ws
+
+    ws.onopen = () => {
+      setWsStatus('connected')
+      ws.send(JSON.stringify({
+        action: 'getConnectionId',
+      }))
+    }
+
+    ws.onmessage = (event) => {
+      try {
+        console.log(event)
+        const data = JSON.parse(event.data)
+        console.log(data) //"CONNECTION_ACK"
+        console.log(data.type)
+        console.log(data.type === 'CONNECTION_ACK')
+        if (data.type === 'CONNECTION_ACK') {
+          setConnectionId(data.connectionId)
+          console.log(this.connectionId)
+        } else if (data.type === 'THUMBNAIL_GENERATED') {
+          setGenerated(prev => ({ ...prev, thumbnail: data.url }))
+        } else if (data.type === 'WATERMARK_GENERATED') {
+          setGenerated(prev => ({ ...prev, watermark: data.url }))
+        } else if (data.type === 'MEDIUM_GENERATED') {
+          setGenerated(prev => ({ ...prev, medium: data.url }))
+        }
+      } catch {}
+    }
+
+    ws.onclose = () => {
+      setWsStatus('disconnected')
+      setConnectionId(null)
+    }
+
+    ws.onerror = () => setWsStatus('disconnected')
+  }, [])
+
+  useEffect(() => {
+    //connect()
+    return () => wsRef.current?.close()
+  }, [connect])
 
   function addFiles(incoming) {
-    const imageFiles = incoming.filter(f => f.type.startsWith('image/'))
-    if (imageFiles.length === 0) return
-    setFiles(prev => [...prev, ...imageFiles])
-    const newPreviews = imageFiles.map(f => ({
-      name: f.name,
-      url: URL.createObjectURL(f),
-    }))
-    setPreviews(prev => [...prev, ...newPreviews])
-    setStatus(null)
+    const images = incoming.filter(f => f.type.startsWith('image/'))
+    if (!images.length) return
+    setFiles(prev => [...prev, ...images])
+    setPreviews(prev => [
+      ...prev,
+      ...images.map(f => ({ name: f.name, url: URL.createObjectURL(f) })),
+    ])
+    setUploadStatus(null)
     setMessage('')
+    setGenerated({ thumbnail: null, medium: null })
   }
 
   function removeFile(index) {
@@ -30,55 +84,61 @@ export default function App() {
     setPreviews(prev => prev.filter((_, i) => i !== index))
   }
 
-  function handleDrop(e) {
-    e.preventDefault()
-    setDragOver(false)
-    addFiles(Array.from(e.dataTransfer.files))
-  }
-
   async function handleUpload() {
-    if (files.length === 0) return
-    setStatus('uploading')
+    const ws = wsRef.current
+    if (!files.length || !ws || ws.readyState !== WebSocket.OPEN) return
+
+    setUploadStatus('uploading')
     setMessage('')
+    setGenerated({ thumbnail: null, medium: null })
 
     const formData = new FormData()
     files.forEach(f => formData.append('images', f))
-    console.log(formData)
     try {
       const res = await fetch(`${BACKEND_URL}/images/upload`, {
         method: 'POST',
+        headers: {
+          connectionId
+        },
         body: formData,
       })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok) {
-        setStatus('success')
-        setMessage(data.message || `${files.length} image(s) uploaded successfully.`)
-        setFiles([])
-        previews.forEach(p => URL.revokeObjectURL(p.url))
-        setPreviews([])
-      } else {
-        setStatus('error')
-        setMessage(data.error || `Upload failed (${res.status}).`)
-      }
+
+      setUploadStatus('sent')
+      setMessage('Image sent — waiting for processed results…')
+      previews.forEach(p => URL.revokeObjectURL(p.url))
+      setFiles([])
+      setPreviews([])
     } catch (err) {
-      setStatus('error')
-      setMessage(`Could not reach the server: ${err.message}`)
+      setUploadStatus('error')
+      setMessage(`Failed to send: ${err.message}`)
     }
   }
+
+  const isReady = wsStatus === 'connected' && files.length > 0 && uploadStatus !== 'uploading'
+  const isWaiting = uploadStatus === 'sent' && !generated.thumbnail && !generated.medium
 
   return (
     <div className="container">
       <h1>Image Upload</h1>
-      <p className="subtitle">
-        Backend: <code>{BACKEND_URL}</code>
-      </p>
+
+      <div className={`ws-badge ws-${wsStatus}`}>
+        <span className="ws-dot" />
+        {wsStatus === 'connected'
+          ? 'Connected'
+          : wsStatus === 'connecting'
+            ? 'Connecting…'
+            : 'Disconnected'}
+        {wsStatus === 'disconnected' && (
+          <button className="reconnect-btn" onClick={connect}>Reconnect</button>
+        )}
+      </div>
 
       <div
         className={`dropzone${dragOver ? ' drag-over' : ''}`}
         onClick={() => inputRef.current.click()}
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
+        onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(Array.from(e.dataTransfer.files)) }}
       >
         <input
           ref={inputRef}
@@ -106,18 +166,69 @@ export default function App() {
       <button
         className="upload-btn"
         onClick={handleUpload}
-        disabled={files.length === 0 || status === 'uploading'}
+        disabled={!isReady}
       >
-        {status === 'uploading'
-          ? 'Uploading…'
+        {uploadStatus === 'uploading'
+          ? 'Sending…'
           : files.length > 0
             ? `Upload (${files.length})`
             : 'Upload'}
       </button>
 
       {message && (
-        <p className={`feedback ${status}`}>{message}</p>
+        <p className={`feedback ${uploadStatus}`}>{message}</p>
+      )}
+
+      {isWaiting && (
+        <div className="generated-section">
+          <h2>Processing</h2>
+          <div className="generated-grid">
+            <div className="generated-card placeholder">
+              <span className="generated-label">Thumbnail</span>
+              <div className="spinner" />
+            </div>
+            <div className="generated-card placeholder">
+              <span className="generated-label">Medium</span>
+              <div className="spinner" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(generated.thumbnail || generated.medium) && (
+        <div className="generated-section">
+          <h2>Generated Images</h2>
+          <div className="generated-grid">
+            <div className={`generated-card${generated.thumbnail ? '' : ' placeholder'}`}>
+              <span className="generated-label">WaterMark</span>
+              {generated.thumbnail
+                ? <img src={generated.watermark} alt="Watermark" />
+                : <div className="spinner" />}
+            </div>
+            <div className={`generated-card${generated.thumbnail ? '' : ' placeholder'}`}>
+              <span className="generated-label">Thumbnail</span>
+              {generated.thumbnail
+                ? <img src={generated.thumbnail} alt="Thumbnail" />
+                : <div className="spinner" />}
+            </div>
+            <div className={`generated-card${generated.medium ? '' : ' placeholder'}`}>
+              <span className="generated-label">Medium</span>
+              {generated.medium
+                ? <img src={generated.medium} alt="Medium" />
+                : <div className="spinner" />}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.split(',')[1])
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
