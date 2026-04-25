@@ -25,11 +25,14 @@ export const handler = async (event) => {
     try {
       const body = typeof record.body === "string" ? JSON.parse(record.body) : record.body;
 
-      const { bucket, key } = body;
-      if (!bucket || !key) throw new Error("Missing bucket/key");
-
+      const { Bucket, Key } = JSON.parse(body.Message);
+      console.log(body.Message)
+      console.log(body.Message.Bucket)
+      console.log(!Bucket || !Key)
+      if (!Bucket || !Key) throw new Error("Missing bucket/key");
+      console.log("Not missing bucket/key")
       // 1) Read original
-      const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+      const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
       const inputBuffer = await streamToBuffer(obj.Body);
 
       // 2) Resize to 150x150 (cover = crop to square)
@@ -39,20 +42,20 @@ export const handler = async (event) => {
         .toBuffer();
 
       // 3) Build destination key
-      const baseName = key.split("/").pop();
+      const baseName = Key.split("/").pop();
       const destKey = `${PREFIX}${baseName.replace(/\.\w+$/, "")}_thumb.jpg`;
 
       // 4) Write thumbnail
       await s3.send(
         new PutObjectCommand({
-          Bucket: DEST_BUCKET || bucket,
+          Bucket: DEST_BUCKET || Bucket,
           Key: destKey,
           Body: thumbBuffer,
           ContentType: "image/jpeg",
         })
       );
 
-      results.push({ key, thumbnailKey: destKey, status: "ok" });
+      results.push({ Key, thumbnailKey: destKey, status: "ok" });
     } catch (err) {
       console.error("Error processing record:", err);
       throw err;

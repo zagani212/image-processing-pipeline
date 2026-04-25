@@ -50,6 +50,8 @@ module "permission" {
 
   validate_function = "validate"
   metadata_function_arn = module.lambda.metadata
+  # medium_function_arn = module.lambda.medium
+  thumbnail_function_arn = module.lambda.thumbnail
   api_gw = module.api_gw.api_gw_arn
   sns_arn = module.sns.sns_arn
   bucket_arn = module.s3.bucket_arn
@@ -60,5 +62,7 @@ module "permission" {
   medium_sqs_arn = module.sqs.medium_sqs_arn
   medium_sqs_url = module.sqs.medium_sqs_url
   validate_role_name = "validate_function_role"
+  thumbnail_role_name = "thumbnail_resize_function_role"
+  medium_role_name = "medium_resize_function_role"
   metadata_role_name = "metadata_function_role"
 }

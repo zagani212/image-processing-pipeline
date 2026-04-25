@@ -1,4 +1,4 @@
-resource "aws_lambda_event_source_mapping" "example" {
+resource "aws_lambda_event_source_mapping" "metadata_event_source" {
   event_source_arn = var.metadata_sqs_arn
   function_name    = var.metadata_function_arn
   batch_size       = 10

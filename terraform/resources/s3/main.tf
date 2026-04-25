@@ -4,4 +4,7 @@ resource "aws_s3_bucket" "bucket" {
   tags = {
     Name        = "Image Processing Pipeline Bucket"
   }
+
+  force_destroy = true
+
 }

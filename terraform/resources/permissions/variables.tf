@@ -28,7 +28,20 @@ variable "metadata_function_arn" {
 variable "dynamo_table_arn" {
   type = string  
 }
+####
+variable "thumbnail_role_name" {
+  type = string
+}
+variable "medium_role_name" {
+  type = string
+}
 
+# variable "medium_function_arn" {
+#   type = string
+# }
+variable "thumbnail_function_arn" {
+  type = string
+}
 variable "thumbnail_sqs_arn" {
   type = string  
 }
