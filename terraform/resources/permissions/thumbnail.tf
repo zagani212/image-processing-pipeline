@@ -18,10 +18,17 @@ resource "aws_iam_policy" "thumbnail_function_policy" {
     Statement = [
       {
         Action = [
+          "execute-api:ManageConnections"
+        ]
+        Effect   = "Allow"
+        Resource = ["${var.api_gw_ws}/*/*/@connections/*"]
+      },
+      {
+        Action = [
           "s3:GetObject",
         ]
         Effect   = "Allow"
-        Resource = format("%s/uploads/*", var.bucket_arn)
+        Resource = [format("%s/uploads/*", var.bucket_arn), format("%s/thumbnails/*", var.bucket_arn)]
       },
       {
         Action = [
