@@ -26,6 +26,14 @@ output "medium_sqs_arn" {
   value = aws_sqs_queue.medium_queue.arn
 }
 
+output "watermark_sqs_url" {
+  value = aws_sqs_queue.watermark_queue.url
+}
+
+output "watermark_sqs_arn" {
+  value = aws_sqs_queue.watermark_queue.arn
+}
+
 output "medium_sqs_url" {
   value = aws_sqs_queue.medium_queue.url
 }

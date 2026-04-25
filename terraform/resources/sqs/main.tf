@@ -12,3 +12,8 @@ resource "aws_sqs_queue" "medium_queue" {
   name                      = "images-medium-queue"
   delay_seconds             = 0
 }
+
+resource "aws_sqs_queue" "watermark_queue" {
+  name                      = "images-watermark-queue"
+  delay_seconds             = 0
+}
