@@ -26,11 +26,8 @@ export const handler = async (event) => {
       const body = typeof record.body === "string" ? JSON.parse(record.body) : record.body;
 
       const { Bucket, Key } = JSON.parse(body.Message);
-      console.log(body.Message)
-      console.log(body.Message.Bucket)
-      console.log(!Bucket || !Key)
+
       if (!Bucket || !Key) throw new Error("Missing bucket/key");
-      console.log("Not missing bucket/key")
       // 1) Read original
       const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
       const inputBuffer = await streamToBuffer(obj.Body);

@@ -10,6 +10,6 @@ output "thumbnail" {
   value = aws_lambda_function.thumbnail_resize_function.arn
 }
 
-# output "medium" {
-#   value = aws_lambda_function.medium_resize_function.arn
-# }
+output "medium" {
+  value = aws_lambda_function.medium_resize_function.arn
+}

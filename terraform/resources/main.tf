@@ -50,7 +50,7 @@ module "permission" {
 
   validate_function = "validate"
   metadata_function_arn = module.lambda.metadata
-  # medium_function_arn = module.lambda.medium
+  medium_function_arn = module.lambda.medium
   thumbnail_function_arn = module.lambda.thumbnail
   api_gw = module.api_gw.api_gw_arn
   sns_arn = module.sns.sns_arn

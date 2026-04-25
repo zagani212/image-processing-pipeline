@@ -37,11 +37,4 @@ resource "aws_lambda_function" "thumbnail_resize_function" {
   code_sha256   = data.archive_file.thumbnail_resize_function_archive_file.output_base64sha256
   runtime = "nodejs24.x"
 
-  environment {
-    variables = {
-      DYNAMO_TABLE = var.dynamo_table
-      SNS_TOPIC_ARN = var.sns_arn
-    }
-  }
-
 }

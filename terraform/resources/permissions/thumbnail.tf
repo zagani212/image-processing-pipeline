@@ -11,7 +11,7 @@ resource "aws_lambda_event_source_mapping" "thumbnail_event_source" {
 resource "aws_iam_policy" "thumbnail_function_policy" {
   name        = "thumbnail_lambda_policy"
   path        = "/"
-  description = "Metadata lambda policy"
+  description = "Thumbnail resize lambda policy"
 
   policy = jsonencode({
     Version = "2012-10-17"

@@ -36,9 +36,9 @@ variable "medium_role_name" {
   type = string
 }
 
-# variable "medium_function_arn" {
-#   type = string
-# }
+variable "medium_function_arn" {
+  type = string
+}
 variable "thumbnail_function_arn" {
   type = string
 }
