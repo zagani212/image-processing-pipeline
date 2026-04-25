@@ -21,7 +21,7 @@ export const handler = async (event) => {
     try {
       const body = JSON.parse(record.body);
 
-      const { bucket, key, filename, uploadedAt } = body;
+      const { bucket, key, filename, uploadedAt, connectionId} = body;
 
       if (!bucket || !key) {
         throw new Error("Missing bucket or key in message");
@@ -81,6 +81,7 @@ export const handler = async (event) => {
           Message: JSON.stringify({
             Bucket: bucket,
             Key: key,
+            ConnectionId: connectionId
           }),
           Subject: "ImageToBeResized",
         })

@@ -1,5 +1,5 @@
 {
-  "name": "thumbnail",
+  "name": "retreiveconnectoininfos",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +11,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1037.0",
-    "@aws-sdk/s3-request-presigner": "^3.1037.0",
-    "aws-sdk": "^2.1693.0",
-    "sharp": "^0.34.5"
+    "aws-sdk": "^2.1693.0"
   }
 }

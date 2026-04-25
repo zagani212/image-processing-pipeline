@@ -15,6 +15,10 @@ export const handler = async (event) => {
     try {
       const contentType =
         event.headers["content-type"] || event.headers["Content-Type"];
+      const connectionId =
+        event.headers["connectionId"] || event.headers["connectionid"];
+
+      console.log(event.headers)
 
       if (!contentType?.includes("multipart/form-data")) {
         return resolve({
@@ -76,7 +80,7 @@ export const handler = async (event) => {
               Bucket: BUCKET,
               Key: key,
               Body: buffer,
-              ContentType: mimeType,
+              ContentType: mimeType
             })
             // Upload to S3
             await s3.send(
@@ -101,6 +105,7 @@ export const handler = async (event) => {
                   key,
                   bucket: BUCKET,
                   url: fileUrl,
+                  connectionId,
                   uploadedAt: new Date().toISOString(),
                 }),
               })

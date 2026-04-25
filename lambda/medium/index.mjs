@@ -1,11 +1,13 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
+import AWS from "aws-sdk";
 
 const s3 = new S3Client({});
 
-const DEST_BUCKET = process.env.THUMBNAIL_BUCKET;
 const PREFIX = process.env.THUMBNAIL_PREFIX || "mediums/";
 const SIZE = parseInt(process.env.THUMBNAIL_SIZE || "800", 10);
+const ENDPOINT = process.env.ENDPOINT || "tnynwdt4o1.execute-api.eu-west-3.amazonaws.com/dev-stage"
 
 // helper: stream -> buffer
 const streamToBuffer = async (stream) =>
@@ -25,7 +27,7 @@ export const handler = async (event) => {
     try {
       const body = typeof record.body === "string" ? JSON.parse(record.body) : record.body;
 
-      const { Bucket, Key } = JSON.parse(body.Message);
+      const { Bucket, Key, ConnectionId } = JSON.parse(body.Message);
       
       if (!Bucket || !Key) throw new Error("Missing bucket/key");
       // 1) Read original
@@ -45,12 +47,32 @@ export const handler = async (event) => {
       // 4) Write thumbnail
       await s3.send(
         new PutObjectCommand({
-          Bucket: DEST_BUCKET || Bucket,
+          Bucket,
           Key: destKey,
           Body: thumbBuffer,
           ContentType: "image/jpeg",
         })
       );
+
+      const command = new GetObjectCommand({
+        Bucket,
+        Key: destKey,
+      });
+
+      const signedUrl = await getSignedUrl(s3, command, {
+        expiresIn: 3600, // seconds (1 hour)
+      });
+
+      const apigw = new AWS.ApiGatewayManagementApi({
+        endpoint: ENDPOINT,
+      });
+
+      await apigw
+        .postToConnection({
+          ConnectionId,
+          Data: JSON.stringify({ type: "MEDIUM_GENERATED", url: signedUrl }),
+        })
+        .promise();
 
       results.push({ Key, thumbnailKey: destKey, status: "ok" });
     } catch (err) {
