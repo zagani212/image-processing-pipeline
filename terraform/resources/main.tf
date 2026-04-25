@@ -28,6 +28,7 @@ module "sns" {
 
   thumbnail_sqs_arn = module.sqs.thumbnail_sqs_arn
   medium_sqs_arn = module.sqs.medium_sqs_arn
+  watermark_sqs_arn = module.sqs.watermark_sqs_arn
 }
 
 module "lambda" {
@@ -43,26 +44,37 @@ module "api_gw" {
   source = "./api-gateway"
 
   validate = module.lambda.validate
+  connect = module.lambda.connect
+  getConnectionId = module.lambda.getConnectionId
 }
 
 module "permission" {
   source = "./permissions"
 
   validate_function = "validate"
+  get_connection_id_function = "getConnectionInfos"
+  connect_function = "connectionHandler"
   metadata_function_arn = module.lambda.metadata
   medium_function_arn = module.lambda.medium
+  watermark_function_arn = module.lambda.watermark
   thumbnail_function_arn = module.lambda.thumbnail
   api_gw = module.api_gw.api_gw_arn
+  api_gw_ws = module.api_gw.api_gw_ws_arn
   sns_arn = module.sns.sns_arn
   bucket_arn = module.s3.bucket_arn
   dynamo_table_arn = module.dynamodb.images_table_arn
   metadata_sqs_arn = module.sqs.metadata_sqs_arn
   thumbnail_sqs_arn = module.sqs.thumbnail_sqs_arn
+  watermark_sqs_arn = module.sqs.watermark_sqs_arn
+  watermark_sqs_url = module.sqs.watermark_sqs_url
   thumbnail_sqs_url = module.sqs.thumbnail_sqs_url
   medium_sqs_arn = module.sqs.medium_sqs_arn
   medium_sqs_url = module.sqs.medium_sqs_url
   validate_role_name = "validate_function_role"
+  connect_handler_role_name = "connect_handler_function_role"
+  get_connection_id_handler_role_name = "get_connection_infos_function_role"
   thumbnail_role_name = "thumbnail_resize_function_role"
   medium_role_name = "medium_resize_function_role"
+  watermark_role_name = "watermark_function_role"
   metadata_role_name = "metadata_function_role"
 }
